@@ -28,6 +28,7 @@
     width: 100%;
     overflow: hidden;
     background: var(--bg);
+    position: relative;
     color: var(--ink);
     font-family: -apple-system, "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-weight: 300;
@@ -523,7 +524,8 @@
 
   /* — Reduce on small screens — */
   @media (max-width: 640px) {
-    #bg { transform: scale(1); }
+    html, body { height: 100dvh; }
+    #bg { transform: scale(1); height: 100dvh; }
     .modal { padding: 48px 28px 36px; }
     .modal-title { font-size: 32px; }
     .field-row { grid-template-columns: 1fr; }
