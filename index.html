@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Liqlab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" />
+<style>
+  /* — Type stack — Instrument Serif (editorial accent) + system sans for UI — */
+
+  :root {
+    --bg: #0a0a0a;
+    --ink: #f5f1ea;
+    --ink-dim: rgba(245, 241, 234, 0.55);
+    --ink-faint: rgba(245, 241, 234, 0.18);
+    --line: rgba(245, 241, 234, 0.14);
+    --accent: #f5f1ea;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: 0.01em;
+    cursor: default;
+  }
+
+  /* — Static background image (replaces canvas fluid) — */
+  #bg {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("bg.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #000;
+    z-index: 0;
+    opacity: 0.6; /* 40% reduction toward black */
+    transform: scale(1.06);
+    transform-origin: center;
+    transition: filter 0.5s var(--ease);
+    will-change: filter, transform;
+    filter: blur(8px);
+  }
+
+  /* — Grain overlay using SVG turbulence, animated subtly — */
+  .grain {
+    position: fixed;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.78;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.92   0 0 0 0 0.95   0 0 0 0 0.94   0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    animation: grainShift 4s steps(14) infinite;
+  }
+
+  @keyframes grainShift {
+    0%   { transform: translate(0, 0); }
+    10%  { transform: translate(-2%, -1%); }
+    20%  { transform: translate(1%, 2%); }
+    30%  { transform: translate(-1%, 1%); }
+    40%  { transform: translate(2%, -2%); }
+    50%  { transform: translate(-2%, 1%); }
+    60%  { transform: translate(1%, -1%); }
+    70%  { transform: translate(-1%, 2%); }
+    80%  { transform: translate(2%, 1%); }
+    90%  { transform: translate(-2%, -1%); }
+    100% { transform: translate(0, 0); }
+  }
+
+  /* — Vignette — */
+  .vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%);
+  }
+
+  /* — Stage — */
+  .stage {
+    position: relative;
+    z-index: 3;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+
+  /* — Top bar — */
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 40px;
+    pointer-events: none;
+  }
+  .topbar > * { pointer-events: auto; }
+  .meta {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    font-weight: 400;
+  }
+
+  /* — Logo wrap — */
+  .logo-wrap {
+    width: min(520px, 62vw);
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+    animation: fadeIn 1.6s var(--ease-out) 0.2s forwards;
+  }
+  .logo-wrap svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .logo-wrap svg path {
+    fill: var(--ink);
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* — Tagline — */
+  .tagline {
+    margin-top: 36px;
+    font-family: "Instrument Serif", "Times New Roman", serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(18px, 2.2vw, 24px);
+    color: var(--ink-dim);
+    letter-spacing: 0.005em;
+    opacity: 0;
+    animation: fadeIn 1.4s var(--ease-out) 0.7s forwards;
+  }
+
+  /* — Reserve button — liquid glass — */
+  .reserve-btn {
+    position: relative;
+    margin-top: 56px;
+    color: var(--ink);
+    padding: 18px 60px;
+    font-family: "Instrument Serif", "Times New Roman", serif;
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    cursor: pointer;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background:
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.18) 0%,
+        rgba(255, 255, 255, 0.06) 40%,
+        rgba(255, 255, 255, 0.02) 60%,
+        rgba(255, 255, 255, 0.12) 100%
+      );
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.32),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 0 22px rgba(255, 255, 255, 0.05),
+      0 4px 14px rgba(0, 0, 0, 0.28),
+      0 1px 3px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    isolation: isolate;
+    opacity: 0;
+    animation: fadeIn 1.4s var(--ease-out) 1s forwards;
+    transition:
+      opacity 0.6s var(--ease),
+      box-shadow 0.6s var(--ease),
+      border-color 0.6s var(--ease);
+  }
+  /* Specular highlight — disabled for a more subtle hover */
+  .reserve-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+  }
+  /* Soft inner glow / refraction tint */
+  .reserve-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      120% 80% at 30% 0%,
+      rgba(190, 220, 255, 0.18),
+      transparent 60%
+    );
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.9;
+  }
+  .reserve-btn > span {
+    position: relative;
+    z-index: 2;
+    transition: text-shadow 0.6s var(--ease), color 0.6s var(--ease);
+  }
+  .reserve-btn:hover > span {
+    color: #ffffff;
+    text-shadow:
+      0 0 6px rgba(255, 255, 255, 0.55),
+      0 0 14px rgba(220, 230, 255, 0.35),
+      0 0 28px rgba(200, 220, 255, 0.2);
+  }
+  /* active scale removed per request — keep press feedback purely tonal via shadows if needed */
+
+  /* — Bottom info — */
+  .bottom-info {
+    position: fixed;
+    bottom: 28px;
+    left: 0;
+    right: 0;
+    z-index: 4;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 40px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    pointer-events: none;
+  }
+
+  /* — Modal overlay — */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 10, 10, 0);
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    pointer-events: none;
+    transition: background 0.7s var(--ease), backdrop-filter 0.7s var(--ease);
+  }
+  .modal-overlay.open {
+    background: rgba(10, 10, 10, 0.55);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    pointer-events: auto;
+  }
+
+  /* — Modal — */
+  .modal {
+    position: relative;
+    width: min(560px, 92vw);
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 56px 56px 48px;
+    background: rgba(20, 20, 20, 0.6);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    transform: translateY(24px);
+    opacity: 0;
+    transition: transform 0.8s var(--ease), opacity 0.6s var(--ease);
+  }
+  .modal-overlay.open .modal {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .modal::-webkit-scrollbar { width: 4px; }
+  .modal::-webkit-scrollbar-thumb { background: var(--ink-faint); }
+
+  .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    color: var(--ink-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s var(--ease), transform 0.3s var(--ease);
+    border-radius: 50%;
+  }
+  .modal-close:hover { color: var(--ink); transform: rotate(90deg); }
+  .modal-close svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 1.5; }
+
+  .modal-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 16px;
+  }
+  .modal-title {
+    font-family: "Instrument Serif", "Times New Roman", serif;
+    font-weight: 400;
+    font-size: 38px;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+  .modal-title em {
+    font-style: italic;
+    color: var(--ink-dim);
+  }
+  .modal-sub {
+    font-size: 13px;
+    color: var(--ink-dim);
+    margin-bottom: 36px;
+    line-height: 1.55;
+    max-width: 38ch;
+  }
+
+  /* — Form fields — */
+  .form { display: flex; flex-direction: column; gap: 28px; }
+
+  .field { position: relative; }
+  .field-row { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+
+  .field label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 10px;
+    transition: color 0.3s var(--ease);
+  }
+  .field input,
+  .field textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 300;
+    letter-spacing: 0.01em;
+    padding: 8px 0 12px;
+    outline: none;
+    transition: border-color 0.4s var(--ease);
+    resize: none;
+  }
+  .field textarea {
+    min-height: 84px;
+    line-height: 1.5;
+  }
+  .field input:focus,
+  .field textarea:focus {
+    border-color: var(--ink);
+  }
+  .field:focus-within label { color: var(--ink); }
+  .field input::placeholder,
+  .field textarea::placeholder {
+    color: var(--ink-faint);
+  }
+
+  /* — Consent — */
+  .consent {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding-top: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .consent input { position: absolute; opacity: 0; pointer-events: none; }
+  .checkbox {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--ink-dim);
+    border-radius: 2px;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.3s var(--ease), background 0.3s var(--ease);
+  }
+  .checkbox svg {
+    width: 12px;
+    height: 12px;
+    stroke: #0a0a0a;
+    stroke-width: 2.5;
+    fill: none;
+    stroke-dasharray: 20;
+    stroke-dashoffset: 20;
+    transition: stroke-dashoffset 0.4s var(--ease) 0.05s;
+  }
+  .consent input:checked ~ .checkbox {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .consent input:checked ~ .checkbox svg {
+    stroke-dashoffset: 0;
+  }
+  .consent-label {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-dim);
+    transition: color 0.3s var(--ease);
+  }
+  .consent:hover .consent-label,
+  .consent input:checked ~ .consent-label { color: var(--ink); }
+
+  /* — Submit — */
+  .submit-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+  .submit-hint {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .submit-btn {
+    position: relative;
+    background: var(--ink);
+    color: #0a0a0a;
+    border: 1px solid var(--ink);
+    padding: 14px 36px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 999px;
+    overflow: hidden;
+    transition: background 0.5s var(--ease), color 0.5s var(--ease), padding 0.5s var(--ease);
+  }
+  .submit-btn:disabled {
+    background: transparent;
+    color: var(--ink-faint);
+    border-color: var(--line);
+    cursor: not-allowed;
+  }
+  .submit-btn:not(:disabled):hover {
+    background: transparent;
+    color: var(--ink);
+    padding: 14px 44px;
+  }
+  .submit-btn .arrow {
+    display: inline-block;
+    margin-left: 10px;
+    transition: transform 0.5s var(--ease);
+  }
+  .submit-btn:not(:disabled):hover .arrow {
+    transform: translateX(4px);
+  }
+
+  /* — Confirmation state — */
+  .confirm-state {
+    display: none;
+    text-align: left;
+    padding: 8px 0;
+  }
+  .confirm-state.active {
+    display: block;
+    animation: fadeIn 0.8s var(--ease-out) forwards;
+  }
+  .confirm-state .modal-title { margin-bottom: 16px; }
+  .confirm-state .modal-sub { margin-bottom: 32px; }
+  .confirm-mark {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .confirm-mark svg {
+    width: 18px; height: 18px;
+    stroke: var(--ink); stroke-width: 1.5; fill: none;
+  }
+
+  /* — Reduce on small screens — */
+  @media (max-width: 640px) {
+    .modal { padding: 48px 28px 36px; }
+    .modal-title { font-size: 32px; }
+    .field-row { grid-template-columns: 1fr; }
+    .submit-row { flex-direction: column; align-items: stretch; gap: 16px; }
+    .topbar, .bottom-info { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<div class="grain"></div>
+<div class="vignette"></div>
+
+<main class="stage">
+  <div class="logo-wrap" id="logoWrap"></div>
+  <button class="reserve-btn" id="reserveBtn" style="padding: 15px 60px"><span>Reserve</span></button>
+</main>
+
+<!-- Reservation modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" id="modalClose" aria-label="Close">
+      <svg viewBox="0 0 24 24"><path d="M5 5 L19 19 M19 5 L5 19" fill="none"/></svg>
+    </button>
+
+    <!-- Form state -->
+    <div id="formState">
+      <div class="modal-eyebrow">Reservation</div>
+      <h2 class="modal-title" id="modalTitle" style="color: rgb(255, 255, 255);">A seat at LiqLab <em></em></h2>
+      <p class="modal-sub" style="font-family: Arial; font-weight: 500; letter-spacing: -0.4px">Tell us a little about yourself. Spaces are limited and offered by review.</p>
+
+      <form class="form" id="reserveForm" novalidate>
+        <div class="field-row">
+          <div class="field">
+            <label for="fullName">Full name</label>
+            <input type="text" id="fullName" name="fullName" autocomplete="name" placeholder="Jonas McKing" required />
+          </div>
+          <div class="field">
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" min="18" max="120" placeholder="24" required />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" autocomplete="email" placeholder="jane@domain.com" required />
+          </div>
+          <div class="field">
+            <label for="instagram">Instagram</label>
+            <input type="text" id="instagram" name="instagram" autocomplete="off" placeholder="@yourhandle" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="motivation">Motivation</label>
+          <textarea id="motivation" name="motivation" rows="3" placeholder="Why this evening, why now…" required></textarea>
+        </div>
+
+        <label class="consent">
+          <input type="checkbox" id="consent" name="consent" required />
+          <span class="checkbox">
+            <svg viewBox="0 0 16 16"><path d="M3 8 L7 12 L13 4"/></svg>
+          </span>
+          <span class="consent-label">I consent to be filmed and to appear in documented material from the event.</span>
+        </label>
+
+        <div class="submit-row">
+          <span class="submit-hint">No confirmation required</span>
+          <button type="submit" class="submit-btn" id="submitBtn" disabled>
+            Send<span class="arrow">→</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Confirmation state -->
+    <div class="confirm-state" id="confirmState">
+      <div class="confirm-mark">
+        <svg viewBox="0 0 16 16"><path d="M3 8 L7 12 L13 4"/></svg>
+      </div>
+      <div class="modal-eyebrow">Received</div>
+      <h2 class="modal-title">Thank you, <em id="confirmName">friend</em>.</h2>
+      <p class="modal-sub">Your request is in. If selected, you will hear from us within seven days at the address you'll provide upon confirmation.</p>
+      <div class="submit-row">
+        <span class="submit-hint">Until then</span>
+        <button type="button" class="submit-btn" id="closeConfirm">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   LOGO INJECTION (inline so we can control fill cleanly)
+================================================================ */
+document.getElementById("logoWrap").innerHTML = "<svg id=\"Layer_1\" data-name=\"Layer 1\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 725.25 214.12\">\n  <defs>\n    \n  </defs>\n  <g id=\"WWbqTZ.tif\">\n    <g>\n      <path class=\"cls-1\" d=\"M617.07,171.71c-10.7.02-19.05,9.36-19.46,19.55-.24,5.96-1.61,10.99-5.67,15.53-3.64,4.07-8.87,6.73-14.41,7.25-12.25.94-22.41-7.68-23.8-19.64-.07-.62-.07-1.26-.07-1.89-.03-12.31-10.15-21.97-22.82-20.78-9.91,1-18.18,9.17-18.32,19.47-.17,12.06-8.49,21.98-20.63,22.86s-22.66-7.99-23.21-20.24l-.38-45.58c-.09-10.62-9.46-19.18-20.16-19.18h-85.91c-10.88,0-19.66,8.74-20.14,19.56l-.35,45.28c-.09,11.67-10.77,20.37-21.95,20.2-11.22-.12-20.32-8.5-21.59-19.72-.07-.62-.07-1.24-.07-1.86-.01-11.35-8.74-20.7-20.44-20.9l-43.58-.16c-12.78-.05-21.18-10.76-21.39-22.96-.19-10.83-9.39-19.43-20.09-19.43h-43.46c-10.59,0-18.68,8.12-20.03,18.33-.09.66-.09,1.34-.09,2.01-.07,11.49-8.31,20.7-19.76,22.1-.62.08-1.24.1-1.86.09l-86.47-.15c-10.86-.02-20.76-9.38-20.77-20.42L0,20.99c0-.78.03-1.55.16-2.32C1.94,7.83,11.11-.13,22.11.02c10.96.02,21.49,8.76,21.53,20.47l.34,87.4c.04,11.24,9.71,19.72,20.54,19.73,10.83,0,20.23-8.49,20.46-19.79s8.17-21.92,20.33-22.5l45.54-.39c11.77-.56,19.4-10.11,19.61-21.44.2-10.75,9.18-20.78,20.39-20.8l129.24-.25c10.69-.01,19.02-7.8,20.46-18.21.1-.69.1-1.39.1-2.09.08-11.61,8.58-21.14,20.27-22.08,11.71-.98,22.8,7.8,23.41,20.11l.39,45.67c.09,10.1,8.84,19.07,19.19,19.06h45.31c10.25,0,17.75-8.47,19.11-18.09.1-.71.1-1.44.11-2.16.09-11.37,8.17-20.55,19.55-22.01.62-.08,1.26-.1,1.89-.1l85.77-.06c10.68-.11,18.93-7.74,20.45-18.13.11-.77.11-1.56.12-2.34.05-12.16,9.73-22,21.83-22.01,12.91-.1,22.09,10.27,22.28,23.05.16,11.01,9.75,19.41,20.43,19.44l43.52.14c10.99.04,20.79,9.34,20.81,20.55l.17,87.24c0,.66-.02,1.32-.11,1.98-1.41,10.3-9.61,18.15-20.02,19.09-.46.04-.92.05-1.38.05l-86.67.16ZM278.04,127.6c11.56,0,20.08-9.83,20-20.8s-8.79-20.3-20.06-20.31h-43.65c-10.9,0-19.31,8.62-20.05,19.32-.8,11.51,8.41,21.82,20.17,21.81l43.59-.03ZM531.21,127.56c.52.05,1.04.06,1.56.05h1.25c9.95-.52,17.82-7.94,19.32-17.4s-4.25-19.3-13.45-22.54-19.68.35-24.67,8.96c-3.79,6.55-3.89,14.16,0,20.9,3.14,5.45,9.1,9.38,15.98,10.03ZM659.04,86.55c-11.67.94-19.82,11.23-18.81,22.44,1.01,11.2,10.96,19.42,22.09,18.57s19.83-10.78,18.98-22.12-10.64-19.82-22.26-18.89Z\"></path>\n      <path class=\"cls-1\" d=\"M105.77,43.79c-11.05-.71-19.43-9.09-20.48-19.81C83.96,10.35,95.17-1,108.9.08c12.09.95,20.88,11.5,20.03,23.45s-10.96,21.04-23.16,20.26Z\"></path>\n    </g>\n  </g>\n</svg>";
+
+/* Background is fully static — no mouse interaction. */
+
+
+/* ================================================================
+   MODAL + FORM
+================================================================ */
+(function () {
+  const overlay   = document.getElementById("modalOverlay");
+  const openBtn   = document.getElementById("reserveBtn");
+  const closeBtn  = document.getElementById("modalClose");
+  const form      = document.getElementById("reserveForm");
+  const submitBtn = document.getElementById("submitBtn");
+  const formState = document.getElementById("formState");
+  const confirmState = document.getElementById("confirmState");
+  const confirmName  = document.getElementById("confirmName");
+  const closeConfirm = document.getElementById("closeConfirm");
+
+  const fullName = document.getElementById("fullName");
+  const age      = document.getElementById("age");
+  const email    = document.getElementById("email");
+  const instagram = document.getElementById("instagram");
+  const motivation = document.getElementById("motivation");
+  const consent  = document.getElementById("consent");
+
+  function openModal() {
+    overlay.classList.add("open");
+    setTimeout(() => fullName.focus(), 600);
+  }
+  function closeModal() {
+    overlay.classList.remove("open");
+    // reset to form state after animation
+    setTimeout(() => {
+      formState.style.display = "block";
+      confirmState.classList.remove("active");
+    }, 700);
+  }
+
+  openBtn.addEventListener("click", openModal);
+  closeBtn.addEventListener("click", closeModal);
+  closeConfirm.addEventListener("click", closeModal);
+
+  // Click outside modal to close
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && overlay.classList.contains("open")) closeModal();
+  });
+
+  function validate() {
+    const emailOk = /.+@.+\..+/.test(email.value.trim());
+    const valid =
+      fullName.value.trim().length >= 2 &&
+      Number(age.value) >= 18 && Number(age.value) <= 120 &&
+      emailOk &&
+      motivation.value.trim().length >= 5 &&
+      consent.checked;
+    submitBtn.disabled = !valid;
+    return valid;
+  }
+  [fullName, age, email, instagram, motivation].forEach(el => el.addEventListener("input", validate));
+  consent.addEventListener("change", validate);
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    submitBtn.disabled = true;
+    const originalLabel = submitBtn.innerHTML;
+    submitBtn.innerHTML = 'Sending<span class="arrow">…</span>';
+
+    const payload = {
+      fullName: fullName.value.trim(),
+      age: age.value.trim(),
+      email: email.value.trim(),
+      instagram: instagram.value.trim(),
+      motivation: motivation.value.trim(),
+      consent: consent.checked,
+      _subject: `Liqlab reservation — ${fullName.value.trim()}`,
+    };
+
+    // Formspree endpoint — you must create one bound to hagbergc@gmail.com
+    // at https://formspree.io and replace this ID. Until then, submission falls
+    // back to a mailto so nothing is silently lost.
+    const FORMSPREE_ID = "xgodyvzg";
+    const endpoint = `https://formspree.io/f/${FORMSPREE_ID}`;
+
+    let sent = false;
+    if (FORMSPREE_ID && FORMSPREE_ID !== "YOUR_FORMSPREE_ID") {
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(payload),
+        });
+        sent = res.ok;
+      } catch (err) {
+        sent = false;
+      }
+    }
+
+    if (!sent) {
+      // Fallback: open a prefilled mail draft so the message still reaches you.
+      const body =
+        `Full name: ${payload.fullName}\n` +
+        `Age: ${payload.age}\n` +
+        `Email: ${payload.email}\n` +
+        `Instagram: ${payload.instagram || "—"}\n\n` +
+        `Motivation:\n${payload.motivation}\n\n` +
+        `Consent to filming: ${payload.consent ? "yes" : "no"}`;
+      window.location.href =
+        `mailto:hagbergc@gmail.com?subject=${encodeURIComponent(payload._subject)}` +
+        `&body=${encodeURIComponent(body)}`;
+    }
+
+    submitBtn.innerHTML = originalLabel;
+
+    const first = fullName.value.trim().split(/\s+/)[0];
+    confirmName.textContent = first;
+
+    // Cross-fade to confirmation
+    formState.style.transition = "opacity 0.4s var(--ease)";
+    formState.style.opacity = "0";
+    setTimeout(() => {
+      formState.style.display = "none";
+      formState.style.opacity = "1";
+      confirmState.classList.add("active");
+    }, 400);
+  });
+})();
+</script>
+</body>
+</html>
