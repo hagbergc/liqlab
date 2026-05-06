@@ -467,6 +467,21 @@
     text-transform: uppercase;
     color: var(--ink-dim);
   }
+  .submit-terms {
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-align: center;
+    margin-top: 12px;
+  }
+  .submit-terms a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ink);
+    transition: opacity 0.3s var(--ease);
+  }
+  .submit-terms a:hover {
+    opacity: 0.7;
+  }
   .submit-btn {
     position: relative;
     background: var(--ink);
@@ -599,11 +614,11 @@
         </label>
 
         <div class="submit-row">
-          <span class="submit-hint">No confirmation required</span>
           <button type="submit" class="submit-btn" id="submitBtn" disabled>
             Send<span class="arrow">→</span>
           </button>
         </div>
+        <p class="submit-terms">By proceeding, you agree to the <a href="#">Terms of Service</a></p>
       </form>
     </div>
 
