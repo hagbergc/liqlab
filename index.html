@@ -583,10 +583,6 @@
             <label for="email">Email</label>
             <input type="email" id="email" name="email" autocomplete="email" placeholder="jane@domain.com" required />
           </div>
-          <div class="field">
-            <label for="instagram">Instagram</label>
-            <input type="text" id="instagram" name="instagram" autocomplete="off" placeholder="@yourhandle" />
-          </div>
         </div>
 
         <div class="field">
@@ -653,7 +649,6 @@ document.getElementById("logoWrap").innerHTML = "<svg id=\"Layer_1\" data-name=\
   const fullName = document.getElementById("fullName");
   const age      = document.getElementById("age");
   const email    = document.getElementById("email");
-  const instagram = document.getElementById("instagram");
   const motivation = document.getElementById("motivation");
   const consent  = document.getElementById("consent");
 
@@ -693,7 +688,7 @@ document.getElementById("logoWrap").innerHTML = "<svg id=\"Layer_1\" data-name=\
     submitBtn.disabled = !valid;
     return valid;
   }
-  [fullName, age, email, instagram, motivation].forEach(el => el.addEventListener("input", validate));
+  [fullName, age, email, motivation].forEach(el => el.addEventListener("input", validate));
   consent.addEventListener("change", validate);
 
   form.addEventListener("submit", async (e) => {
@@ -708,7 +703,6 @@ document.getElementById("logoWrap").innerHTML = "<svg id=\"Layer_1\" data-name=\
       fullName: fullName.value.trim(),
       age: age.value.trim(),
       email: email.value.trim(),
-      instagram: instagram.value.trim(),
       motivation: motivation.value.trim(),
       consent: consent.checked,
       _subject: `Liqlab reservation — ${fullName.value.trim()}`,
@@ -739,8 +733,7 @@ document.getElementById("logoWrap").innerHTML = "<svg id=\"Layer_1\" data-name=\
       const body =
         `Full name: ${payload.fullName}\n` +
         `Age: ${payload.age}\n` +
-        `Email: ${payload.email}\n` +
-        `Instagram: ${payload.instagram || "—"}\n\n` +
+        `Email: ${payload.email}\n\n` +
         `Motivation:\n${payload.motivation}\n\n` +
         `Consent to filming: ${payload.consent ? "yes" : "no"}`;
       window.location.href =
