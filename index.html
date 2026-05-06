@@ -482,6 +482,35 @@
   .submit-terms a:hover {
     opacity: 0.7;
   }
+
+  /* — Terms Modal — */
+  .terms-content {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+  }
+  .terms-content p {
+    margin-bottom: 16px;
+  }
+  .terms-content h3 {
+    font-family: "Instrument Serif", "Times New Roman", serif;
+    font-weight: 400;
+    font-size: 16px;
+    margin-top: 20px;
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+  .terms-content ul {
+    margin-left: 20px;
+    margin-bottom: 16px;
+  }
+  .terms-content li {
+    margin-bottom: 8px;
+    color: var(--ink-dim);
+  }
+  .terms-content strong {
+    color: var(--ink);
+  }
   .submit-btn {
     position: relative;
     background: var(--ink);
@@ -618,7 +647,7 @@
             Send<span class="arrow">→</span>
           </button>
         </div>
-        <p class="submit-terms">By proceeding, you agree to the <a href="#">Terms of Service</a></p>
+        <p class="submit-terms">By proceeding, you agree to the <a href="#" id="termsLink">Terms of Service</a></p>
       </form>
     </div>
 
@@ -634,6 +663,110 @@
         <span class="submit-hint">Until then</span>
         <button type="button" class="submit-btn" id="closeConfirm">Close</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Terms & Conditions Modal -->
+<div class="modal-overlay" id="termsOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
+    <button class="modal-close" id="termsClose" aria-label="Close">
+      <svg viewBox="0 0 24 24"><path d="M5 5 L19 19 M19 5 L5 19" fill="none"/></svg>
+    </button>
+    <div class="modal-eyebrow">Terms & Conditions</div>
+    <h2 class="modal-title" id="termsTitle">Villkor för deltagande</h2>
+    <div class="terms-content">
+      <p><strong>Senast uppdaterade: 6 maj 2026</strong></p>
+      <p>Genom att registrera dig till och/eller delta i detta event ("Eventet") accepterar du följande villkor ("Villkoren"). Om du inte accepterar Villkoren ska du inte registrera dig eller delta.</p>
+      
+      <h3>1. Om Eventet</h3>
+      <p>Eventet är en privat, kuraterad upplevelse arrangerad av LIQLAB tillsammans med Felicia och tillhörande produktions- och samarbetspartners.
+Eventet genomförs den 10 juni 2026 under kvällstid på plats i Stockholmsområdet. Exakt adress, tider och praktisk information delas endast med personer som efter registrering blivit tilldelade plats.
+Arrangören förbehåller sig rätten att när som helst ändra upplägg, innehål, plats, tider eller andra delar av Eventet utan föregående meddelande.</p>
+      
+      <h3>2. Registrering och urvalsprocess</h3>
+      <p>Registrering utgör en intresseanmälan och innebär inte garanti för deltagande.
+Urval sker löpande enligt kriterier fastställda av arrangören. Besked om eventuell tilldelning av plats lämnas normalt inom sju (7) dagar från registreringstillfället.</p>
+      <p>Arrangören har rätt att:</p>
+      <ul>
+        <li>neka registreringar,</li>
+        <li>återkalla tidigare bekräftad plats,</li>
+        <li>neka inträde vid ankomst,</li>
+        <li>samt avvisa deltagare från Eventet,</li>
+      </ul>
+      <p>utan skyldighet att lämna närmare motivering.</p>
+      
+      <h3>3. Behörighetskrav</h3>
+      <p>För att vara berättigad att delta krävs att deltagaren:</p>
+      <ul>
+        <li>har fyllt 18 år,</li>
+        <li>inte har fyllt 30 år vid tidpunkten för Eventet,</li>
+        <li>samt deltar tillsammans med en dejt.</li>
+      </ul>
+      <p>Deltagande ensam, i grupp eller tillsammans med vänner är inte tillåtet om inte annat uttryckligen godkänts av arrangören.
+Arrangören äger rätt att begära giltig legitimation och neka deltagare som inte kan styrka ålder eller identitet.</p>
+      
+      <h3>4. Uppförande och säkerhet</h3>
+      <p>Deltagare förväntas uppträda respektfullt mot andra gäster, personal, medverkande och samarbetspartners.
+Arrangören förbehåller sig rätten att neka eller avbryta deltagande för person som:</p>
+      <ul>
+        <li>uppträder olämpligt,</li>
+        <li>är märkbart påverkad,</li>
+        <li>bryter mot instruktioner från personal,</li>
+        <li>skapar otrygghet,</li>
+        <li>eller på annat sätt bedöms påverka Eventets genomförande negativt.</li>
+      </ul>
+      <p>Sådant beslut kan fattas direkt på plats och utan kompensation.</p>
+      
+      <h3>5. Dokumentation och medverkan</h3>
+      <p>Eventet kan komma att dokumenteras genom foto, video, ljudupptagning, livestreaming och annan inspelningsteknik ("Materialet").
+Genom att delta samtycker deltagaren till att:</p>
+      <ul>
+        <li>kunna förekomma i Materialet,</li>
+        <li>Materialet får redigeras, bearbetas och sammanställas,</li>
+        <li>samt att Materialet får användas utan geografisk eller tidsmässig begränsning i samband med kommunikation, marknadsföring, PR, publicering, distribution och produktion kopplad till Eventet och dess samarbetspartners.</li>
+      </ul>
+      <p>Materialet kan komma att publiceras i digitala och redaktionella kanaler, sociala medier, kampanjer, annonser, pressmaterial, dokumentära format och andra medieformer. Produktion, bearbetning och distribution av Materialet kan ske av eller i samarbete med externa produktionsbolag, kreativa partners samt verksamheter kopplade till IQ Initiativet AB.</p>
+      <p>Deltagare har möjlighet att på plats meddela produktionsteamet om de inte önskar identifierbar medverkan i närbild eller intervjuformat. Arrangören kan dock inte garantera att deltagare inte förekommer i bakgrund, miljöbilder eller större publikscener.</p>
+      
+      <h3>6. Personuppgifter</h3>
+      <p>Genom registrering samtycker deltagaren till att arrangören behandlar lämnade personuppgifter i syfte att:</p>
+      <ul>
+        <li>administrera registrering och urval,</li>
+        <li>kommunicera kring Eventet,</li>
+        <li>säkerställa säkerhet och genomförande,</li>
+        <li>samt hantera dokumentation och produktion relaterad till Eventet.</li>
+      </ul>
+      <p>Personuppgifter kan delas med samarbetspartners, produktionsbolag och tekniska leverantörer i den utsträckning som krävs för Eventets genomförande.</p>
+      
+      <h3>7. Ansvarsbegränsning</h3>
+      <p>Deltagande sker på egen risk.</p>
+      <p>Arrangören ansvarar inte för:</p>
+      <ul>
+        <li>personliga tillhörigheter,</li>
+        <li>indirekta skador eller följdskador,</li>
+        <li>förlorad egendom,</li>
+        <li>tekniska fel,</li>
+        <li>inställt eller förändrat program,</li>
+        <li>eller andra omständigheter utanför arrangörens kontroll.</li>
+      </ul>
+      
+      <h3>8. Ändringar och återkallelse</h3>
+      <p>Arrangören förbehåller sig rätten att när som helst:</p>
+      <ul>
+        <li>ändra dessa Villkor,</li>
+        <li>ställa in Eventet,</li>
+        <li>begränsa deltagande,</li>
+        <li>eller återkalla inbjudningar och bekräftelser.</li>
+      </ul>
+      
+      <h3>9. Godkännande</h3>
+      <p>Genom att registrera dig bekräftar du att:</p>
+      <ul>
+        <li>du har läst och förstått dessa Villkor,</li>
+        <li>de uppgifter du lämnar är korrekta,</li>
+        <li>samt att du accepterar Villkoren i sin helhet.</li>
+      </ul>
     </div>
   </div>
 </div>
@@ -769,6 +902,36 @@ document.getElementById("logoWrap").innerHTML = "<svg id=\"Layer_1\" data-name=\
       formState.style.opacity = "1";
       confirmState.classList.add("active");
     }, 400);
+  });
+})();
+
+/* ================================================================
+   TERMS MODAL
+================================================================ */
+(function () {
+  const termsOverlay = document.getElementById("termsOverlay");
+  const termsLink = document.getElementById("termsLink");
+  const termsClose = document.getElementById("termsClose");
+
+  function openTerms(e) {
+    e.preventDefault();
+    termsOverlay.classList.add("open");
+  }
+
+  function closeTerms() {
+    termsOverlay.classList.remove("open");
+  }
+
+  termsLink.addEventListener("click", openTerms);
+  termsClose.addEventListener("click", closeTerms);
+
+  // Click outside modal to close
+  termsOverlay.addEventListener("click", (e) => {
+    if (e.target === termsOverlay) closeTerms();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && termsOverlay.classList.contains("open")) closeTerms();
   });
 })();
 </script>
